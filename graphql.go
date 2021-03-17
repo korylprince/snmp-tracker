@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/korylprince/go-graphql-ws"
-	"github.com/korylprince/snmp-mac-track/snmp"
+	"github.com/korylprince/snmp-tracker/snmp"
 )
 
 const gqlReadSystems = `

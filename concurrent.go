@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/korylprince/ipscan/resolve"
-	"github.com/korylprince/snmp-mac-track/snmp"
+	"github.com/korylprince/snmp-tracker/snmp"
 )
 
 func conWorker(wg *sync.WaitGroup, in <-chan *snmp.System, out chan<- *snmp.NetInfo, resolver *resolve.Service) {

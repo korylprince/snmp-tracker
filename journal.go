@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/korylprince/snmp-mac-track/snmp"
+	"github.com/korylprince/snmp-tracker/snmp"
 )
 
 type Upsert struct {

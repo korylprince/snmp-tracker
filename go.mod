@@ -1,4 +1,4 @@
-module github.com/korylprince/snmp-mac-track
+module github.com/korylprince/snmp-tracker
 
 go 1.15
 
