@@ -4,7 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"sync"
+	"time"
 
 	"github.com/korylprince/go-graphql-ws"
 	"github.com/korylprince/snmp-tracker/snmp"
@@ -46,6 +49,7 @@ const gqlInsertJournal = `
 
 type GraphQLConn struct {
 	conn *graphql.Conn
+	mu   *sync.Mutex
 }
 
 func NewGraphQLConn(endpoint, adminSecret, apiSecret string) (*GraphQLConn, error) {
@@ -62,7 +66,25 @@ func NewGraphQLConn(endpoint, adminSecret, apiSecret string) (*GraphQLConn, erro
 		return nil, fmt.Errorf("Unable to connect: %w", err)
 	}
 
-	return &GraphQLConn{conn: conn}, nil
+	gc := &GraphQLConn{conn: conn, mu: new(sync.Mutex)}
+
+	conn.SetCloseHandler(func(code int, text string) {
+		log.Printf("WARNING: Websocket closed unexpectedly: (%d) %s\n", code, text)
+		gc.mu.Lock()
+		for {
+			time.Sleep(10 * time.Second)
+			c, err := NewGraphQLConn(endpoint, adminSecret, apiSecret)
+			if err != nil {
+				log.Println("WARNING: Unable to connect to GraphQL endpoint:", err)
+				continue
+			}
+			gc.conn = c.conn
+			gc.mu.Unlock()
+			return
+		}
+	})
+
+	return gc, nil
 }
 
 func (c *GraphQLConn) ReadSystems() ([]*snmp.System, error) {
@@ -80,7 +102,9 @@ func (c *GraphQLConn) ReadSystems() ([]*snmp.System, error) {
 		Query: gqlReadSystems,
 	}
 
+	c.mu.Lock()
 	payload, err := c.conn.Execute(context.Background(), q)
+	c.mu.Unlock()
 	if err != nil {
 		return nil, fmt.Errorf("Unable to execute query: %w", err)
 	}
@@ -121,7 +145,9 @@ func (c *GraphQLConn) InsertJournal(j *Journal) (int, error) {
 		},
 	}
 
+	c.mu.Lock()
 	payload, err := c.conn.Execute(context.Background(), q)
+	c.mu.Unlock()
 	if err != nil {
 		return 0, fmt.Errorf("Unable to execute query: %w", err)
 	}
