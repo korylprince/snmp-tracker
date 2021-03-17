@@ -40,9 +40,9 @@ func main() {
 		id, err := conn.InsertJournal(j)
 		if err != nil {
 			log.Println("WARNING: Unable to insert information:", err)
+		} else {
+			log.Println("INFO: Journal inserted:", id)
 		}
-
-		log.Println("INFO: Journal inserted:", id)
 
 		time.Sleep(config.PollInterval)
 	}
