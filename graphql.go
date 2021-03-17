@@ -48,10 +48,13 @@ type GraphQLConn struct {
 	conn *graphql.Conn
 }
 
-func NewGraphQLConn(endpoint, secret string) (*GraphQLConn, error) {
+func NewGraphQLConn(endpoint, adminSecret, apiSecret string) (*GraphQLConn, error) {
 	headers := make(http.Header)
-	if secret != "" {
-		headers.Add("X-Hasura-Admin-Secret", secret)
+	if adminSecret != "" {
+		headers.Add("X-Hasura-Admin-Secret", adminSecret)
+	} else if apiSecret != "" {
+		headers.Add("Authorization", fmt.Sprintf("Bearer %s", apiSecret))
+		headers.Add("X-Authorization-Type", "API-Key")
 	}
 
 	conn, _, err := graphql.DefaultDialer.Dial(endpoint, headers, nil)

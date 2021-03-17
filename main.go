@@ -17,7 +17,7 @@ func main() {
 	resolver := resolve.NewService(config.Resolvers, config.ResolveBuffers)
 
 	log.Println("Connecting to", config.GraphQLEndpoint)
-	conn, err := NewGraphQLConn(config.GraphQLEndpoint, config.GraphQLAPISecret)
+	conn, err := NewGraphQLConn(config.GraphQLEndpoint, config.GraphQLAdminSecret, config.GraphQLAPISecret)
 	if err != nil {
 		log.Fatalln("ERROR: Unable to connect to GraphQL endpoint:", err)
 	}
