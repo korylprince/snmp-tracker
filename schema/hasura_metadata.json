@@ -1,0 +1,587 @@
+{
+  "version": 2,
+  "tables": [
+    {
+      "table": {
+        "schema": "public",
+        "name": "arp"
+      },
+      "object_relationships": [
+        {
+          "name": "ip_address",
+          "using": {
+            "foreign_key_constraint_on": "ip_address_id"
+          }
+        },
+        {
+          "name": "mac_address",
+          "using": {
+            "foreign_key_constraint_on": "mac_address_id"
+          }
+        }
+      ],
+      "array_relationships": [
+        {
+          "name": "journals",
+          "using": {
+            "foreign_key_constraint_on": {
+              "column": "arp_id",
+              "table": {
+                "schema": "public",
+                "name": "arp_journal"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "table": {
+        "schema": "public",
+        "name": "arp_journal"
+      },
+      "object_relationships": [
+        {
+          "name": "arp",
+          "using": {
+            "foreign_key_constraint_on": "arp_id"
+          }
+        },
+        {
+          "name": "journal",
+          "using": {
+            "foreign_key_constraint_on": "journal_id"
+          }
+        }
+      ]
+    },
+    {
+      "table": {
+        "schema": "public",
+        "name": "connection"
+      },
+      "array_relationships": [
+        {
+          "name": "systems",
+          "using": {
+            "foreign_key_constraint_on": {
+              "column": "connection_id",
+              "table": {
+                "schema": "public",
+                "name": "system"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "table": {
+        "schema": "public",
+        "name": "hostname"
+      },
+      "array_relationships": [
+        {
+          "name": "resolves",
+          "using": {
+            "foreign_key_constraint_on": {
+              "column": "hostname_id",
+              "table": {
+                "schema": "public",
+                "name": "resolve"
+              }
+            }
+          }
+        },
+        {
+          "name": "systems",
+          "using": {
+            "foreign_key_constraint_on": {
+              "column": "hostname_id",
+              "table": {
+                "schema": "public",
+                "name": "system"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "table": {
+        "schema": "public",
+        "name": "ip_address"
+      },
+      "array_relationships": [
+        {
+          "name": "arps",
+          "using": {
+            "foreign_key_constraint_on": {
+              "column": "ip_address_id",
+              "table": {
+                "schema": "public",
+                "name": "arp"
+              }
+            }
+          }
+        },
+        {
+          "name": "resolves",
+          "using": {
+            "foreign_key_constraint_on": {
+              "column": "ip_address_id",
+              "table": {
+                "schema": "public",
+                "name": "resolve"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "table": {
+        "schema": "public",
+        "name": "journal"
+      },
+      "array_relationships": [
+        {
+          "name": "arps",
+          "using": {
+            "foreign_key_constraint_on": {
+              "column": "journal_id",
+              "table": {
+                "schema": "public",
+                "name": "arp_journal"
+              }
+            }
+          }
+        },
+        {
+          "name": "lldps",
+          "using": {
+            "foreign_key_constraint_on": {
+              "column": "journal_id",
+              "table": {
+                "schema": "public",
+                "name": "lldp_journal"
+              }
+            }
+          }
+        },
+        {
+          "name": "mac_addresses",
+          "using": {
+            "foreign_key_constraint_on": {
+              "column": "journal_id",
+              "table": {
+                "schema": "public",
+                "name": "mac_address_journal"
+              }
+            }
+          }
+        },
+        {
+          "name": "ports",
+          "using": {
+            "foreign_key_constraint_on": {
+              "column": "journal_id",
+              "table": {
+                "schema": "public",
+                "name": "port_journal"
+              }
+            }
+          }
+        },
+        {
+          "name": "resolves",
+          "using": {
+            "foreign_key_constraint_on": {
+              "column": "journal_id",
+              "table": {
+                "schema": "public",
+                "name": "resolve_journal"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "table": {
+        "schema": "public",
+        "name": "lldp"
+      },
+      "object_relationships": [
+        {
+          "name": "local_port",
+          "using": {
+            "foreign_key_constraint_on": "local_port_id"
+          }
+        },
+        {
+          "name": "remote_port",
+          "using": {
+            "foreign_key_constraint_on": "remote_port_id"
+          }
+        }
+      ],
+      "array_relationships": [
+        {
+          "name": "journals",
+          "using": {
+            "foreign_key_constraint_on": {
+              "column": "lldp_id",
+              "table": {
+                "schema": "public",
+                "name": "lldp_journal"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "table": {
+        "schema": "public",
+        "name": "lldp_journal"
+      },
+      "object_relationships": [
+        {
+          "name": "journal",
+          "using": {
+            "foreign_key_constraint_on": "journal_id"
+          }
+        },
+        {
+          "name": "lldp",
+          "using": {
+            "foreign_key_constraint_on": "lldp_id"
+          }
+        }
+      ]
+    },
+    {
+      "table": {
+        "schema": "public",
+        "name": "mac_address"
+      },
+      "object_relationships": [
+        {
+          "name": "vendor",
+          "using": {
+            "manual_configuration": {
+              "remote_table": {
+                "schema": "public",
+                "name": "mac_address_vendor"
+              },
+              "column_mapping": {
+                "id": "mac_address_id"
+              }
+            }
+          }
+        }
+      ],
+      "array_relationships": [
+        {
+          "name": "arps",
+          "using": {
+            "foreign_key_constraint_on": {
+              "column": "mac_address_id",
+              "table": {
+                "schema": "public",
+                "name": "arp"
+              }
+            }
+          }
+        },
+        {
+          "name": "journals",
+          "using": {
+            "foreign_key_constraint_on": {
+              "column": "mac_address_id",
+              "table": {
+                "schema": "public",
+                "name": "mac_address_journal"
+              }
+            }
+          }
+        },
+        {
+          "name": "ports",
+          "using": {
+            "foreign_key_constraint_on": {
+              "column": "mac_address_id",
+              "table": {
+                "schema": "public",
+                "name": "port"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "table": {
+        "schema": "public",
+        "name": "mac_address_journal"
+      },
+      "object_relationships": [
+        {
+          "name": "journal",
+          "using": {
+            "foreign_key_constraint_on": "journal_id"
+          }
+        },
+        {
+          "name": "mac_address",
+          "using": {
+            "foreign_key_constraint_on": "mac_address_id"
+          }
+        },
+        {
+          "name": "port",
+          "using": {
+            "foreign_key_constraint_on": "port_id"
+          }
+        }
+      ]
+    },
+    {
+      "table": {
+        "schema": "public",
+        "name": "mac_address_vendor"
+      },
+      "object_relationships": [
+        {
+          "name": "mac_address",
+          "using": {
+            "manual_configuration": {
+              "remote_table": {
+                "schema": "public",
+                "name": "mac_address"
+              },
+              "column_mapping": {
+                "mac_address_id": "id"
+              }
+            }
+          }
+        },
+        {
+          "name": "vendor",
+          "using": {
+            "manual_configuration": {
+              "remote_table": {
+                "schema": "public",
+                "name": "vendor"
+              },
+              "column_mapping": {
+                "vendor_prefix": "prefix"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "table": {
+        "schema": "public",
+        "name": "port"
+      },
+      "object_relationships": [
+        {
+          "name": "mac_address",
+          "using": {
+            "foreign_key_constraint_on": "mac_address_id"
+          }
+        },
+        {
+          "name": "system",
+          "using": {
+            "foreign_key_constraint_on": "system_id"
+          }
+        }
+      ],
+      "array_relationships": [
+        {
+          "name": "journals",
+          "using": {
+            "foreign_key_constraint_on": {
+              "column": "port_id",
+              "table": {
+                "schema": "public",
+                "name": "port_journal"
+              }
+            }
+          }
+        },
+        {
+          "name": "local_lldps",
+          "using": {
+            "foreign_key_constraint_on": {
+              "column": "local_port_id",
+              "table": {
+                "schema": "public",
+                "name": "lldp"
+              }
+            }
+          }
+        },
+        {
+          "name": "mac_address_journals",
+          "using": {
+            "foreign_key_constraint_on": {
+              "column": "port_id",
+              "table": {
+                "schema": "public",
+                "name": "mac_address_journal"
+              }
+            }
+          }
+        },
+        {
+          "name": "remote_lldps",
+          "using": {
+            "foreign_key_constraint_on": {
+              "column": "remote_port_id",
+              "table": {
+                "schema": "public",
+                "name": "lldp"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "table": {
+        "schema": "public",
+        "name": "port_journal"
+      },
+      "object_relationships": [
+        {
+          "name": "journal",
+          "using": {
+            "foreign_key_constraint_on": "journal_id"
+          }
+        },
+        {
+          "name": "port",
+          "using": {
+            "foreign_key_constraint_on": "port_id"
+          }
+        }
+      ]
+    },
+    {
+      "table": {
+        "schema": "public",
+        "name": "resolve"
+      },
+      "object_relationships": [
+        {
+          "name": "hostname",
+          "using": {
+            "foreign_key_constraint_on": "hostname_id"
+          }
+        },
+        {
+          "name": "ip_address",
+          "using": {
+            "foreign_key_constraint_on": "ip_address_id"
+          }
+        }
+      ],
+      "array_relationships": [
+        {
+          "name": "journals",
+          "using": {
+            "foreign_key_constraint_on": {
+              "column": "resolve_id",
+              "table": {
+                "schema": "public",
+                "name": "resolve_journal"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "table": {
+        "schema": "public",
+        "name": "resolve_journal"
+      },
+      "object_relationships": [
+        {
+          "name": "journal",
+          "using": {
+            "foreign_key_constraint_on": "journal_id"
+          }
+        },
+        {
+          "name": "resolve",
+          "using": {
+            "foreign_key_constraint_on": "resolve_id"
+          }
+        }
+      ]
+    },
+    {
+      "table": {
+        "schema": "public",
+        "name": "system"
+      },
+      "object_relationships": [
+        {
+          "name": "connection",
+          "using": {
+            "foreign_key_constraint_on": "connection_id"
+          }
+        },
+        {
+          "name": "hostname",
+          "using": {
+            "foreign_key_constraint_on": "hostname_id"
+          }
+        }
+      ],
+      "array_relationships": [
+        {
+          "name": "ports",
+          "using": {
+            "foreign_key_constraint_on": {
+              "column": "system_id",
+              "table": {
+                "schema": "public",
+                "name": "port"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "table": {
+        "schema": "public",
+        "name": "vendor"
+      },
+      "array_relationships": [
+        {
+          "name": "mac_addresses",
+          "using": {
+            "manual_configuration": {
+              "remote_table": {
+                "schema": "public",
+                "name": "mac_address_vendor"
+              },
+              "column_mapping": {
+                "prefix": "vendor_prefix"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
