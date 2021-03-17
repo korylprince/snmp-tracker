@@ -5,8 +5,7 @@ version=$1
 
 tag="korylprince/snmp-tracker"
 
-#docker build --no-cache --build-arg "VERSION=$version" --tag "$tag:$version" .
-docker build --build-arg "VERSION=$version" --tag "$tag:$version" .
+docker build --no-cache --build-arg "VERSION=$version" --tag "$tag:$version" .
 
 docker push "$tag:$version"
 

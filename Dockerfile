@@ -10,7 +10,7 @@ RUN git clone --branch "$VERSION" --single-branch --depth 1 \
     https://github.com/korylprince/snmp-tracker.git  /go/src/github.com/korylprince/snmp-tracker
 
 RUN cd /go/src/github.com/korylprince/snmp-tracker && \
-    go install -mod=vendor github.com/korylprince/snmp-tracker
+    go install -mod=vendor .
 
 
 FROM alpine:3.13
