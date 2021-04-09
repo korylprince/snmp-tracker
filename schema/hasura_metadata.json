@@ -33,6 +33,20 @@
             }
           }
         }
+      ],
+      "select_permissions": [
+        {
+          "role": "viewer",
+          "permission": {
+            "columns": [
+              "id",
+              "mac_address_id",
+              "ip_address_id"
+            ],
+            "filter": {},
+            "allow_aggregations": true
+          }
+        }
       ]
     },
     {
@@ -51,6 +65,19 @@
           "name": "journal",
           "using": {
             "foreign_key_constraint_on": "journal_id"
+          }
+        }
+      ],
+      "select_permissions": [
+        {
+          "role": "viewer",
+          "permission": {
+            "columns": [
+              "journal_id",
+              "arp_id"
+            ],
+            "filter": {},
+            "allow_aggregations": true
           }
         }
       ]
@@ -105,6 +132,19 @@
             }
           }
         }
+      ],
+      "select_permissions": [
+        {
+          "role": "viewer",
+          "permission": {
+            "columns": [
+              "id",
+              "hostname"
+            ],
+            "filter": {},
+            "allow_aggregations": true
+          }
+        }
       ]
     },
     {
@@ -135,6 +175,19 @@
                 "name": "resolve"
               }
             }
+          }
+        }
+      ],
+      "select_permissions": [
+        {
+          "role": "viewer",
+          "permission": {
+            "columns": [
+              "id",
+              "ip_address"
+            ],
+            "filter": {},
+            "allow_aggregations": true
           }
         }
       ]
@@ -205,6 +258,19 @@
             }
           }
         }
+      ],
+      "select_permissions": [
+        {
+          "role": "viewer",
+          "permission": {
+            "columns": [
+              "id",
+              "time"
+            ],
+            "filter": {},
+            "allow_aggregations": true
+          }
+        }
       ]
     },
     {
@@ -239,6 +305,20 @@
             }
           }
         }
+      ],
+      "select_permissions": [
+        {
+          "role": "viewer",
+          "permission": {
+            "columns": [
+              "id",
+              "local_port_id",
+              "remote_port_id"
+            ],
+            "filter": {},
+            "allow_aggregations": true
+          }
+        }
       ]
     },
     {
@@ -257,6 +337,19 @@
           "name": "lldp",
           "using": {
             "foreign_key_constraint_on": "lldp_id"
+          }
+        }
+      ],
+      "select_permissions": [
+        {
+          "role": "viewer",
+          "permission": {
+            "columns": [
+              "journal_id",
+              "lldp_id"
+            ],
+            "filter": {},
+            "allow_aggregations": true
           }
         }
       ]
@@ -319,6 +412,19 @@
             }
           }
         }
+      ],
+      "select_permissions": [
+        {
+          "role": "viewer",
+          "permission": {
+            "columns": [
+              "id",
+              "mac_address"
+            ],
+            "filter": {},
+            "allow_aggregations": true
+          }
+        }
       ]
     },
     {
@@ -343,6 +449,21 @@
           "name": "port",
           "using": {
             "foreign_key_constraint_on": "port_id"
+          }
+        }
+      ],
+      "select_permissions": [
+        {
+          "role": "viewer",
+          "permission": {
+            "columns": [
+              "journal_id",
+              "mac_address_id",
+              "port_id",
+              "vlan"
+            ],
+            "filter": {},
+            "allow_aggregations": true
           }
         }
       ]
@@ -379,6 +500,19 @@
                 "vendor_prefix": "prefix"
               }
             }
+          }
+        }
+      ],
+      "select_permissions": [
+        {
+          "role": "viewer",
+          "permission": {
+            "columns": [
+              "mac_address_id",
+              "vendor_prefix"
+            ],
+            "filter": {},
+            "allow_aggregations": true
           }
         }
       ]
@@ -451,6 +585,23 @@
             }
           }
         }
+      ],
+      "select_permissions": [
+        {
+          "role": "viewer",
+          "permission": {
+            "columns": [
+              "id",
+              "system_id",
+              "mac_address_id",
+              "name",
+              "number",
+              "description"
+            ],
+            "filter": {},
+            "allow_aggregations": true
+          }
+        }
       ]
     },
     {
@@ -469,6 +620,21 @@
           "name": "port",
           "using": {
             "foreign_key_constraint_on": "port_id"
+          }
+        }
+      ],
+      "select_permissions": [
+        {
+          "role": "viewer",
+          "permission": {
+            "columns": [
+              "journal_id",
+              "port_id",
+              "status",
+              "speed"
+            ],
+            "filter": {},
+            "allow_aggregations": true
           }
         }
       ]
@@ -505,6 +671,20 @@
             }
           }
         }
+      ],
+      "select_permissions": [
+        {
+          "role": "viewer",
+          "permission": {
+            "columns": [
+              "id",
+              "ip_address_id",
+              "hostname_id"
+            ],
+            "filter": {},
+            "allow_aggregations": true
+          }
+        }
       ]
     },
     {
@@ -523,6 +703,19 @@
           "name": "resolve",
           "using": {
             "foreign_key_constraint_on": "resolve_id"
+          }
+        }
+      ],
+      "select_permissions": [
+        {
+          "role": "viewer",
+          "permission": {
+            "columns": [
+              "journal_id",
+              "resolve_id"
+            ],
+            "filter": {},
+            "allow_aggregations": true
           }
         }
       ]
@@ -559,6 +752,21 @@
             }
           }
         }
+      ],
+      "select_permissions": [
+        {
+          "role": "viewer",
+          "permission": {
+            "columns": [
+              "hostname_id",
+              "id",
+              "name",
+              "port"
+            ],
+            "filter": {},
+            "allow_aggregations": true
+          }
+        }
       ]
     },
     {
@@ -579,6 +787,19 @@
                 "prefix": "vendor_prefix"
               }
             }
+          }
+        }
+      ],
+      "select_permissions": [
+        {
+          "role": "viewer",
+          "permission": {
+            "columns": [
+              "prefix",
+              "name"
+            ],
+            "filter": {},
+            "allow_aggregations": true
           }
         }
       ]
