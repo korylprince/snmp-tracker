@@ -5,6 +5,8 @@ create table journal (
     time timestamp not null
 );
 
+create index on journal(time);
+
 create type transport as enum ('tcp', 'udp');
 
 create table connection (
@@ -37,6 +39,8 @@ create table system (
     connection_id int references connection(id)
 );
 
+create index on system(hostname_id);
+
 create table mac_address (
     id bigserial primary key,
     mac_address text constraint unique_mac_address unique not null
@@ -56,12 +60,18 @@ create table port (
     constraint unique_port_system_name unique(system_id, name)
 );
 
+create index on port(system_id);
+create index on port(mac_address_id);
+
 create table port_journal (
     journal_id bigint not null references journal(id),
     port_id bigint not null references port(id),
     status text not null,
     speed int not null
 );
+
+create index on port_journal(journal_id);
+create index on port_journal(port_id);
 
 create table lldp (
     id bigserial primary key,
@@ -70,10 +80,16 @@ create table lldp (
     constraint unique_lldp unique(local_port_id, remote_port_id)
 );
 
+create index on lldp(local_port_id);
+create index on lldp(remote_port_id);
+
 create table lldp_journal (
     journal_id bigint not null references journal(id),
     lldp_id bigint not null references lldp(id)
 );
+
+create index on lldp_journal(journal_id);
+create index on lldp_journal(lldp_id);
 
 create table mac_address_journal (
     journal_id bigint not null references journal(id),
@@ -81,6 +97,10 @@ create table mac_address_journal (
     port_id bigint not null references port(id),
     vlan int not null
 );
+
+create index on mac_address_journal(journal_id);
+create index on mac_address_journal(mac_address_id);
+create index on mac_address_journal(port_id);
 
 create table ip_address (
     id bigserial primary key,
@@ -94,10 +114,16 @@ create table arp (
     constraint unique_arp unique(mac_address_id, ip_address_id)
 );
 
+create index on arp(mac_address_id);
+create index on arp(ip_address_id);
+
 create table arp_journal (
     journal_id bigint not null references journal(id),
     arp_id bigint not null references arp(id)
 );
+
+create index on arp_journal(journal_id);
+create index on arp_journal(arp_id);
 
 create table resolve (
     id bigserial primary key,
@@ -106,10 +132,16 @@ create table resolve (
     constraint unique_resolve unique(ip_address_id, hostname_id)
 );
 
+create index on resolve(ip_address_id);
+create index on resolve(hostname_id);
+
 create table resolve_journal (
     journal_id bigint not null references journal(id),
     resolve_id bigint not null references resolve(id)
 );
+
+create index on resolve_journal(journal_id);
+create index on resolve_journal(resolve_id);
 
 create table vendor (
     prefix text primary key,
