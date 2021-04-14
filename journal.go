@@ -145,7 +145,7 @@ func portKey(p *snmp.Port) string {
 
 func Translate(i *snmp.NetInfo) *Journal {
 	j := new(Journal)
-	t := time.Now()
+	t := time.Now().UTC()
 
 	sysCache := make(map[string]*SystemPointer)
 	portCache := make(map[string]*PortPointer)
