@@ -37,11 +37,11 @@ func main() {
 		j := Translate(info)
 
 		log.Println("INFO: Inserting information into database")
-		id, err := conn.InsertJournal(j)
+		rows, err := conn.InsertJournal(j)
 		if err != nil {
 			log.Println("WARNING: Unable to insert information:", err)
 		} else {
-			log.Println("INFO: Journal inserted:", id)
+			log.Println("INFO:", rows, "rows inserted")
 		}
 
 		time.Sleep(config.PollInterval)

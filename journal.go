@@ -65,6 +65,7 @@ type PortPointer struct {
 
 type PortJournal struct {
 	Port   *PortPointer `json:"port"`
+	Time   *time.Time   `json:"time"`
 	Status string       `json:"status"`
 	Speed  int          `json:"speed"`
 }
@@ -81,11 +82,13 @@ type LLDPPointer struct {
 
 type LLDPJournal struct {
 	LLDP *LLDPPointer `json:"lldp"`
+	Time *time.Time   `json:"time"`
 }
 
 type MacAddressJournal struct {
 	MacAddress *MacAddressPointer `json:"mac_address"`
 	Port       *PortPointer       `json:"port"`
+	Time       *time.Time         `json:"time"`
 	Vlan       int                `json:"vlan"`
 }
 
@@ -109,7 +112,8 @@ type ArpPointer struct {
 }
 
 type ArpJournal struct {
-	Arp *ArpPointer `json:"arp"`
+	Arp  *ArpPointer `json:"arp"`
+	Time *time.Time  `json:"time"`
 }
 
 type Resolve struct {
@@ -124,25 +128,15 @@ type ResolvePointer struct {
 
 type ResolveJournal struct {
 	Resolve *ResolvePointer `json:"resolve"`
+	Time    *time.Time      `json:"time"`
 }
 
 type Journal struct {
-	Time  time.Time `json:"time"`
-	Ports struct {
-		Data []*PortJournal `json:"data"`
-	} `json:"ports"`
-	LLDPs struct {
-		Data []*LLDPJournal `json:"data"`
-	} `json:"lldps"`
-	MacAddresses struct {
-		Data []*MacAddressJournal `json:"data"`
-	} `json:"mac_addresses"`
-	Arps struct {
-		Data []*ArpJournal `json:"data"`
-	} `json:"arps"`
-	Resolves struct {
-		Data []*ResolveJournal `json:"data"`
-	} `json:"resolves"`
+	Ports        []*PortJournal
+	LLDPs        []*LLDPJournal
+	MacAddresses []*MacAddressJournal
+	Arps         []*ArpJournal
+	Resolves     []*ResolveJournal
 }
 
 func portKey(p *snmp.Port) string {
@@ -150,9 +144,8 @@ func portKey(p *snmp.Port) string {
 }
 
 func Translate(i *snmp.NetInfo) *Journal {
-	j := &Journal{
-		Time: time.Now(),
-	}
+	j := new(Journal)
+	t := time.Now()
 
 	sysCache := make(map[string]*SystemPointer)
 	portCache := make(map[string]*PortPointer)
@@ -171,8 +164,8 @@ func Translate(i *snmp.NetInfo) *Journal {
 			OnConflict: portOnConflictMacAddressDescription,
 		}
 		portCache[portKey(p)] = pp
-		pj := &PortJournal{Port: pp, Status: p.LinkStatus.String(), Speed: int(p.Speed)}
-		j.Ports.Data = append(j.Ports.Data, pj)
+		pj := &PortJournal{Port: pp, Time: &t, Status: p.LinkStatus.String(), Speed: int(p.Speed)}
+		j.Ports = append(j.Ports, pj)
 	}
 
 	for _, l := range i.LLDPs {
@@ -195,14 +188,14 @@ func Translate(i *snmp.NetInfo) *Journal {
 			portCache[portKey(l.RemotePort)] = pp
 		}
 		lp := &LLDPPointer{Data: &LLDP{LocalPort: portCache[portKey(l.LocalPort)], RemotePort: pp}, OnConflict: lldpOnConflict}
-		lj := &LLDPJournal{LLDP: lp}
-		j.LLDPs.Data = append(j.LLDPs.Data, lj)
+		lj := &LLDPJournal{LLDP: lp, Time: &t}
+		j.LLDPs = append(j.LLDPs, lj)
 	}
 
 	for _, m := range i.MacAddresses {
 		mp := &MacAddressPointer{Data: &MacAddress{MacAddress: m.MacAddress}, OnConflict: macAddressOnConflict}
-		mj := &MacAddressJournal{MacAddress: mp, Port: portCache[portKey(m.Port)], Vlan: m.Vlan}
-		j.MacAddresses.Data = append(j.MacAddresses.Data, mj)
+		mj := &MacAddressJournal{MacAddress: mp, Port: portCache[portKey(m.Port)], Time: &t, Vlan: m.Vlan}
+		j.MacAddresses = append(j.MacAddresses, mj)
 	}
 
 	arpCache := make(map[string]*SystemPointer)
@@ -211,8 +204,8 @@ func Translate(i *snmp.NetInfo) *Journal {
 		mp := &MacAddressPointer{Data: &MacAddress{MacAddress: a.MacAddress}, OnConflict: macAddressOnConflict}
 		ip := &IPAddressPointer{Data: &IPAddress{IPAddress: a.IPAddress}, OnConflict: ipAddressOnConflict}
 		ap := &ArpPointer{Data: &Arp{MacAddress: mp, IPAddress: ip}, OnConflict: arpOnConflict}
-		aj := &ArpJournal{Arp: ap}
-		j.Arps.Data = append(j.Arps.Data, aj)
+		aj := &ArpJournal{Arp: ap, Time: &t}
+		j.Arps = append(j.Arps, aj)
 		if s, ok := sysCache[a.MacAddress]; ok {
 			arpCache[a.IPAddress] = s
 		}
@@ -226,8 +219,8 @@ func Translate(i *snmp.NetInfo) *Journal {
 			s.OnConflict = systemOnConflictHostname
 		}
 		rp := &ResolvePointer{Data: &Resolve{IPAddress: ip, Hostname: hp}, OnConflict: resolveOnConflict}
-		rj := &ResolveJournal{Resolve: rp}
-		j.Resolves.Data = append(j.Resolves.Data, rj)
+		rj := &ResolveJournal{Resolve: rp, Time: &t}
+		j.Resolves = append(j.Resolves, rj)
 	}
 
 	return j

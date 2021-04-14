@@ -60,12 +60,6 @@
           "using": {
             "foreign_key_constraint_on": "arp_id"
           }
-        },
-        {
-          "name": "journal",
-          "using": {
-            "foreign_key_constraint_on": "journal_id"
-          }
         }
       ],
       "select_permissions": [
@@ -73,8 +67,8 @@
           "role": "viewer",
           "permission": {
             "columns": [
-              "journal_id",
-              "arp_id"
+              "arp_id",
+              "time"
             ],
             "filter": {},
             "allow_aggregations": true
@@ -195,87 +189,6 @@
     {
       "table": {
         "schema": "public",
-        "name": "journal"
-      },
-      "array_relationships": [
-        {
-          "name": "arps",
-          "using": {
-            "foreign_key_constraint_on": {
-              "column": "journal_id",
-              "table": {
-                "schema": "public",
-                "name": "arp_journal"
-              }
-            }
-          }
-        },
-        {
-          "name": "lldps",
-          "using": {
-            "foreign_key_constraint_on": {
-              "column": "journal_id",
-              "table": {
-                "schema": "public",
-                "name": "lldp_journal"
-              }
-            }
-          }
-        },
-        {
-          "name": "mac_addresses",
-          "using": {
-            "foreign_key_constraint_on": {
-              "column": "journal_id",
-              "table": {
-                "schema": "public",
-                "name": "mac_address_journal"
-              }
-            }
-          }
-        },
-        {
-          "name": "ports",
-          "using": {
-            "foreign_key_constraint_on": {
-              "column": "journal_id",
-              "table": {
-                "schema": "public",
-                "name": "port_journal"
-              }
-            }
-          }
-        },
-        {
-          "name": "resolves",
-          "using": {
-            "foreign_key_constraint_on": {
-              "column": "journal_id",
-              "table": {
-                "schema": "public",
-                "name": "resolve_journal"
-              }
-            }
-          }
-        }
-      ],
-      "select_permissions": [
-        {
-          "role": "viewer",
-          "permission": {
-            "columns": [
-              "id",
-              "time"
-            ],
-            "filter": {},
-            "allow_aggregations": true
-          }
-        }
-      ]
-    },
-    {
-      "table": {
-        "schema": "public",
         "name": "lldp"
       },
       "object_relationships": [
@@ -328,12 +241,6 @@
       },
       "object_relationships": [
         {
-          "name": "journal",
-          "using": {
-            "foreign_key_constraint_on": "journal_id"
-          }
-        },
-        {
           "name": "lldp",
           "using": {
             "foreign_key_constraint_on": "lldp_id"
@@ -345,8 +252,8 @@
           "role": "viewer",
           "permission": {
             "columns": [
-              "journal_id",
-              "lldp_id"
+              "lldp_id",
+              "time"
             ],
             "filter": {},
             "allow_aggregations": true
@@ -434,12 +341,6 @@
       },
       "object_relationships": [
         {
-          "name": "journal",
-          "using": {
-            "foreign_key_constraint_on": "journal_id"
-          }
-        },
-        {
           "name": "mac_address",
           "using": {
             "foreign_key_constraint_on": "mac_address_id"
@@ -457,9 +358,9 @@
           "role": "viewer",
           "permission": {
             "columns": [
-              "journal_id",
               "mac_address_id",
               "port_id",
+              "time",
               "vlan"
             ],
             "filter": {},
@@ -611,12 +512,6 @@
       },
       "object_relationships": [
         {
-          "name": "journal",
-          "using": {
-            "foreign_key_constraint_on": "journal_id"
-          }
-        },
-        {
           "name": "port",
           "using": {
             "foreign_key_constraint_on": "port_id"
@@ -628,8 +523,8 @@
           "role": "viewer",
           "permission": {
             "columns": [
-              "journal_id",
               "port_id",
+              "time",
               "status",
               "speed"
             ],
@@ -694,12 +589,6 @@
       },
       "object_relationships": [
         {
-          "name": "journal",
-          "using": {
-            "foreign_key_constraint_on": "journal_id"
-          }
-        },
-        {
           "name": "resolve",
           "using": {
             "foreign_key_constraint_on": "resolve_id"
@@ -711,8 +600,8 @@
           "role": "viewer",
           "permission": {
             "columns": [
-              "journal_id",
-              "resolve_id"
+              "resolve_id",
+              "time"
             ],
             "filter": {},
             "allow_aggregations": true

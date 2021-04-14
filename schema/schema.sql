@@ -1,12 +1,5 @@
 start transaction;
 
-create table journal (
-    id bigserial primary key,
-    time timestamp not null
-);
-
-create index on journal(time);
-
 create type transport as enum ('tcp', 'udp');
 
 create table connection (
@@ -64,14 +57,14 @@ create index on port(system_id);
 create index on port(mac_address_id);
 
 create table port_journal (
-    journal_id bigint not null references journal(id),
     port_id bigint not null references port(id),
+    time timestamp not null,
     status text not null,
     speed int not null
 );
 
-create index on port_journal(journal_id);
 create index on port_journal(port_id);
+create index on port_journal(time);
 
 create table lldp (
     id bigserial primary key,
@@ -84,23 +77,23 @@ create index on lldp(local_port_id);
 create index on lldp(remote_port_id);
 
 create table lldp_journal (
-    journal_id bigint not null references journal(id),
-    lldp_id bigint not null references lldp(id)
+    lldp_id bigint not null references lldp(id),
+    time timestamp not null
 );
 
-create index on lldp_journal(journal_id);
 create index on lldp_journal(lldp_id);
+create index on lldp_journal(time);
 
 create table mac_address_journal (
-    journal_id bigint not null references journal(id),
     mac_address_id bigint not null references mac_address(id),
     port_id bigint not null references port(id),
+    time timestamp not null,
     vlan int not null
 );
 
-create index on mac_address_journal(journal_id);
 create index on mac_address_journal(mac_address_id);
 create index on mac_address_journal(port_id);
+create index on mac_address_journal(time);
 
 create table ip_address (
     id bigserial primary key,
@@ -118,12 +111,12 @@ create index on arp(mac_address_id);
 create index on arp(ip_address_id);
 
 create table arp_journal (
-    journal_id bigint not null references journal(id),
-    arp_id bigint not null references arp(id)
+    arp_id bigint not null references arp(id),
+    time timestamp not null
 );
 
-create index on arp_journal(journal_id);
 create index on arp_journal(arp_id);
+create index on arp_journal(time);
 
 create table resolve (
     id bigserial primary key,
@@ -136,12 +129,12 @@ create index on resolve(ip_address_id);
 create index on resolve(hostname_id);
 
 create table resolve_journal (
-    journal_id bigint not null references journal(id),
-    resolve_id bigint not null references resolve(id)
+    resolve_id bigint not null references resolve(id),
+    time timestamp not null
 );
 
-create index on resolve_journal(journal_id);
 create index on resolve_journal(resolve_id);
+create index on resolve_journal(time);
 
 create table vendor (
     prefix text primary key,

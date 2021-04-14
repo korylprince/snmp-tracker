@@ -40,11 +40,29 @@ const gqlReadSystems = `
 `
 
 const gqlInsertJournal = `
-	mutation insert_journal($journal: journal_insert_input!) {
-	  insert_journal_one(object: $journal) {
-		id
-	  }
-	}
+mutation insert_journals(
+  $ports: [port_journal_insert_input!]!,
+  $lldps: [lldp_journal_insert_input!]!,
+  $mac_addresses: [mac_address_journal_insert_input!]!,
+  $arps: [arp_journal_insert_input!]!,
+  $resolves: [resolve_journal_insert_input!]!
+) {
+  insert_port_journal(objects: $ports) {
+    affected_rows
+  }
+  insert_lldp_journal(objects: $lldps) {
+    affected_rows
+  }
+  insert_mac_address_journal(objects: $mac_addresses) {
+    affected_rows
+  }
+  insert_arp_journal(objects: $arps) {
+    affected_rows
+  }
+  insert_resolve_journal(objects: $resolves) {
+    affected_rows
+  }
+}
 `
 
 type GraphQLConn struct {
@@ -133,15 +151,31 @@ func (c *GraphQLConn) ReadSystems() ([]*snmp.System, error) {
 
 func (c *GraphQLConn) InsertJournal(j *Journal) (int, error) {
 	type response struct {
-		InsertJournal struct {
-			ID int `json:"id"`
-		} `json:"insert_journal_one"`
+		InsertPortJournal struct {
+			Rows int `json:"affected_rows"`
+		} `json:"insert_port_journal"`
+		InsertLLDPJournal struct {
+			Rows int `json:"affected_rows"`
+		} `json:"insert_lldp_journal"`
+		InsertMacAddressJournal struct {
+			Rows int `json:"affected_rows"`
+		} `json:"insert_mac_address_journal"`
+		InsertArpJournal struct {
+			Rows int `json:"affected_rows"`
+		} `json:"insert_arp_journal"`
+		InsertResolveJournal struct {
+			Rows int `json:"affected_rows"`
+		} `json:"insert_resolve_journal"`
 	}
 
 	var q = &graphql.MessagePayloadStart{
 		Query: gqlInsertJournal,
 		Variables: map[string]interface{}{
-			"journal": j,
+			"ports":         j.Ports,
+			"lldps":         j.LLDPs,
+			"mac_addresses": j.MacAddresses,
+			"arps":          j.Arps,
+			"resolves":      j.Resolves,
 		},
 	}
 
@@ -162,5 +196,10 @@ func (c *GraphQLConn) InsertJournal(j *Journal) (int, error) {
 		return 0, fmt.Errorf("Unable to decode response: %w", err)
 	}
 
-	return resp.InsertJournal.ID, nil
+	return resp.InsertPortJournal.Rows +
+			resp.InsertLLDPJournal.Rows +
+			resp.InsertMacAddressJournal.Rows +
+			resp.InsertArpJournal.Rows +
+			resp.InsertResolveJournal.Rows,
+		nil
 }
