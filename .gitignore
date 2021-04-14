@@ -1,2 +1,4 @@
 *.swp
 snmp-tracker
+cmd/add-systems/add-systems
+env
