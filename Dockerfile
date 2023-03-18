@@ -1,23 +1,16 @@
-FROM golang:1.15-alpine as builder
+FROM golang:1-alpine as builder
 
-ARG VERSION
+RUN go install github.com/korylprince/fileenv@v1.1.0
 
-RUN apk add --no-cache git
+FROM alpine:latest
 
-RUN GO111MODULE=on go get github.com/korylprince/fileenv@v1.1.0
-
-RUN git clone --branch "$VERSION" --single-branch --depth 1 \
-    https://github.com/korylprince/snmp-tracker.git  /go/src/github.com/korylprince/snmp-tracker
-
-RUN cd /go/src/github.com/korylprince/snmp-tracker && \
-    go install -mod=vendor .
-
-
-FROM alpine:3.13
+ARG GO_PROJECT_NAME
+ENV GO_PROJECT_NAME=${GO_PROJECT_NAME}
 
 RUN apk add --no-cache ca-certificates
 
 COPY --from=builder /go/bin/fileenv /
-COPY --from=builder /go/bin/snmp-tracker /
+COPY docker-entrypoint.sh /
+COPY ${GO_PROJECT_NAME} /
 
-CMD ["/fileenv", "/snmp-tracker"]
+CMD ["/fileenv", "/docker-entrypoint.sh"]
