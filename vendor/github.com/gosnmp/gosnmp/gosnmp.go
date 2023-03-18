@@ -12,14 +12,12 @@ import (
 	"context"
 	"crypto/rand"
 	"fmt"
-	"io/ioutil"
-	"log"
 	"math"
 	"math/big"
 	"net"
 	"strconv"
-	"sync"
 	"sync/atomic"
+	"syscall"
 	"time"
 )
 
@@ -33,17 +31,20 @@ const (
 	// Base OID for MIB-2 defined SNMP variables
 	baseOid = ".1.3.6.1.2.1"
 
+	// Max oid sub-identifier value
+	// https://tools.ietf.org/html/rfc2578#section-7.1.3
+	MaxObjectSubIdentifierValue = 4294967295
+
 	// Java SNMP uses 50, snmp-net uses 10
 	defaultMaxRepetitions = 50
 
-	// "udp" is used regularly, prevent 'goconst' complaints
+	// "udp" and "tcp" are used regularly, prevent 'goconst' complaints
 	udp = "udp"
+	tcp = "tcp"
 )
 
 // GoSNMP represents GoSNMP library state.
 type GoSNMP struct {
-	mu sync.Mutex
-
 	// Conn is net connection to use, typically established using GoSNMP.Connect().
 	Conn net.Conn
 
@@ -74,19 +75,15 @@ type GoSNMP struct {
 	// Double timeout in each retry.
 	ExponentialTimeout bool
 
-	// Logger is the GoSNMP.Logger to use for debugging. If nil, debugging
-	// output will be discarded (/dev/null). For verbose logging to stdout:
-	// x.Logger = log.New(os.Stdout, "", 0)
+	// Logger is the GoSNMP.Logger to use for debugging.
+	// For verbose logging to stdout:
+	// x.Logger = NewLogger(log.New(os.Stdout, "", 0))
+	// For Release builds, you can turn off logging entirely by using the go build tag "gosnmp_nodebug" even if the logger was installed.
 	Logger Logger
-
-	// loggingEnabled is set if the Logger isn't nil, otherwise any logging calls
-	// are ignored via shortcircuit.
-	loggingEnabled bool
 
 	// Message hook methods allow passing in a functions at various points in the packet handling.
 	// For example, this can be used to collect packet timing, add metrics, or implement tracing.
 	/*
-
 
 	 */
 	// PreSend is called before a packet is sent.
@@ -123,6 +120,19 @@ type GoSNMP struct {
 	// from the address it received the requests on. To work around that,
 	// we open unconnected UDP socket and use sendto/recvfrom.
 	UseUnconnectedUDPSocket bool
+
+	// If Control is not nil, it is called after creating the network
+	// connection but before actually dialing.
+	//
+	// Can be used when UseUnconnectedUDPSocket is set to false or when using TCP
+	// in scenario where specific options on the underlying socket are nedded.
+	// Refer to https://pkg.go.dev/net#Dialer
+	Control func(network, address string, c syscall.RawConn) error
+
+	// LocalAddr is the local address in the format "address:port" to use when connecting an Target address.
+	// If the port parameter is empty or "0", as in
+	// "127.0.0.1:" or "[::1]:0", a port number is automatically (random) chosen.
+	LocalAddr string
 
 	// netsnmp has '-C APPOPTS - set various application specific behaviours'
 	//
@@ -174,19 +184,20 @@ var Default = &GoSNMP{
 
 // SnmpPDU will be used when doing SNMP Set's
 type SnmpPDU struct {
+	// The value to be set by the SNMP set, or the value when
+	// sending a trap
+	Value interface{}
+
 	// Name is an oid in string format eg ".1.3.6.1.4.9.27"
 	Name string
 
 	// The type of the value eg Integer
 	Type Asn1BER
-
-	// The value to be set by the SNMP set, or the value when
-	// sending a trap
-	Value interface{}
 }
 
-// AsnExtensionID mask to identify types > 30 in subsequent byte
+const AsnContext = 0x80
 const AsnExtensionID = 0x1F
+const AsnExtensionTag = (AsnContext | AsnExtensionID) // 0x9F
 
 //go:generate stringer -type Asn1BER
 
@@ -310,41 +321,39 @@ func (x *GoSNMP) connect(networkSuffix string) error {
 // reconnect (needed for TCP)
 func (x *GoSNMP) netConnect() error {
 	var err error
+	var localAddr net.Addr
 	addr := net.JoinHostPort(x.Target, strconv.Itoa(int(x.Port)))
 
-	switch transport := x.Transport; transport {
+	switch x.Transport {
 	case "udp", "udp4", "udp6":
+		if localAddr, err = net.ResolveUDPAddr(x.Transport, x.LocalAddr); err != nil {
+			return err
+		}
+		if addr4 := localAddr.(*net.UDPAddr).IP.To4(); addr4 != nil {
+			x.Transport = "udp4"
+		}
 		if x.UseUnconnectedUDPSocket {
-			x.uaddr, err = net.ResolveUDPAddr(transport, addr)
+			x.uaddr, err = net.ResolveUDPAddr(x.Transport, addr)
 			if err != nil {
 				return err
 			}
-
-			// As far as I know, this should not be needed in production but only to
-			// work around tests: in tests we are opening fake destination with ends up
-			// being ipv4:0.0.0.0. You can't send packets from :: to 0.0.0.0.
-			if addr4 := x.uaddr.IP.To4(); addr4 != nil {
-				x.uaddr.IP = addr4
-				transport = "udp4"
-			}
-			x.Conn, err = net.ListenUDP(transport, nil)
+			x.Conn, err = net.ListenUDP(x.Transport, localAddr.(*net.UDPAddr))
 			return err
 		}
+	case "tcp", "tcp4", "tcp6":
+		if localAddr, err = net.ResolveTCPAddr(x.Transport, x.LocalAddr); err != nil {
+			return err
+		}
+		if addr4 := localAddr.(*net.TCPAddr).IP.To4(); addr4 != nil {
+			x.Transport = "tcp4"
+		}
 	}
-	dialer := net.Dialer{Timeout: x.Timeout}
+	dialer := net.Dialer{Timeout: x.Timeout, LocalAddr: localAddr, Control: x.Control}
 	x.Conn, err = dialer.DialContext(x.Context, x.Transport, addr)
 	return err
 }
 
 func (x *GoSNMP) validateParameters() error {
-	if x.Logger == nil {
-		x.mu.Lock()
-		defer x.mu.Unlock()
-		x.Logger = log.New(ioutil.Discard, "", 0)
-	} else {
-		x.loggingEnabled = true
-	}
-
 	if x.Transport == "" {
 		x.Transport = udp
 	}
@@ -356,6 +365,8 @@ func (x *GoSNMP) validateParameters() error {
 	}
 
 	if x.Version == Version3 {
+		// TODO: setting the Reportable flag violates rfc3412#6.4 if PDU is of type SNMPv2Trap.
+		// See if we can do this smarter and remove bitclear fix from trap.go:57
 		x.MsgFlags |= Reportable // tell the snmp server that a report PDU MUST be sent
 
 		err := x.validateParametersV3()
@@ -404,9 +415,9 @@ func (x *GoSNMP) Get(oids []string) (result *SnmpPacket, err error) {
 			oidCount, x.MaxOids)
 	}
 	// convert oids slice to pdu slice
-	var pdus []SnmpPDU
+	pdus := make([]SnmpPDU, 0, oidCount)
 	for _, oid := range oids {
-		pdus = append(pdus, SnmpPDU{oid, Null, nil})
+		pdus = append(pdus, SnmpPDU{Name: oid, Type: Null, Value: nil})
 	}
 	// build up SnmpPacket
 	packetOut := x.mkSnmpPacket(GetRequest, pdus, 0, 0)
@@ -418,7 +429,7 @@ func (x *GoSNMP) Set(pdus []SnmpPDU) (result *SnmpPacket, err error) {
 	var packetOut *SnmpPacket
 	switch pdus[0].Type {
 	// TODO test Gauge32
-	case Integer, OctetString, Gauge32, IPAddress:
+	case Integer, OctetString, Gauge32, IPAddress, ObjectIdentifier:
 		packetOut = x.mkSnmpPacket(SetRequest, pdus, 0, 0)
 	default:
 		return nil, fmt.Errorf("ERR:gosnmp currently only supports SNMP SETs for Integers, IPAddress and OctetStrings")
@@ -435,9 +446,9 @@ func (x *GoSNMP) GetNext(oids []string) (result *SnmpPacket, err error) {
 	}
 
 	// convert oids slice to pdu slice
-	var pdus []SnmpPDU
+	pdus := make([]SnmpPDU, 0, oidCount)
 	for _, oid := range oids {
-		pdus = append(pdus, SnmpPDU{oid, Null, nil})
+		pdus = append(pdus, SnmpPDU{Name: oid, Type: Null, Value: nil})
 	}
 
 	// Marshal and send the packet
@@ -460,9 +471,9 @@ func (x *GoSNMP) GetBulk(oids []string, nonRepeaters uint8, maxRepetitions uint3
 	}
 
 	// convert oids slice to pdu slice
-	var pdus []SnmpPDU
+	pdus := make([]SnmpPDU, 0, oidCount)
 	for _, oid := range oids {
-		pdus = append(pdus, SnmpPDU{oid, Null, nil})
+		pdus = append(pdus, SnmpPDU{Name: oid, Type: Null, Value: nil})
 	}
 
 	// Marshal and send the packet
@@ -544,10 +555,6 @@ func (x *GoSNMP) SnmpDecodePacket(resp []byte) (*SnmpPacket, error) {
 		return result, err
 	}
 
-	// if result == nil {
-	// 	err = fmt.Errorf("Unable to decode packet: no variables")
-	// 	return result, err
-	// }
 	return result, nil
 }
 
@@ -642,6 +649,7 @@ func Partition(currentPosition, partitionSize, sliceLength int) bool {
 // return int32, uint32, and uint64.
 func ToBigInt(value interface{}) *big.Int {
 	var val int64
+
 	switch value := value.(type) { // shadow
 	case int:
 		val = int64(value)
@@ -661,16 +669,17 @@ func ToBigInt(value interface{}) *big.Int {
 		val = int64(value)
 	case uint32:
 		val = int64(value)
-	case uint64:
-		return (uint64ToBigInt(value))
+	case uint64: // beware: int64(MaxUint64) overflow, handle different
+		return new(big.Int).SetUint64(value)
 	case string:
 		// for testing and other apps - numbers may appear as strings
 		var err error
 		if val, err = strconv.ParseInt(value, 10, 64); err != nil {
-			return new(big.Int)
+			val = 0
 		}
 	default:
-		return new(big.Int)
+		val = 0
 	}
+
 	return big.NewInt(val)
 }

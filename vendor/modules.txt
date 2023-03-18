@@ -1,9 +1,10 @@
-# github.com/gofrs/uuid v4.0.0+incompatible
+# github.com/gofrs/uuid v4.4.0+incompatible
 ## explicit
 github.com/gofrs/uuid
-# github.com/gorilla/websocket v1.4.2
+# github.com/gorilla/websocket v1.5.0
+## explicit
 github.com/gorilla/websocket
-# github.com/gosnmp/gosnmp v1.30.0
+# github.com/gosnmp/gosnmp v1.35.0
 ## explicit
 github.com/gosnmp/gosnmp
 # github.com/kelseyhightower/envconfig v1.4.0
@@ -12,6 +13,6 @@ github.com/kelseyhightower/envconfig
 # github.com/korylprince/go-graphql-ws v0.3.6
 ## explicit
 github.com/korylprince/go-graphql-ws
-# github.com/korylprince/ipscan v1.0.3
+# github.com/korylprince/ipscan v1.0.4
 ## explicit
 github.com/korylprince/ipscan/resolve
