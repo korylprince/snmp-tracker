@@ -7,6 +7,7 @@ import (
 	"github.com/korylprince/ipscan/resolve"
 )
 
+// Resolve is a hostname resolution
 type Resolve struct {
 	IPAddress string
 	Hostname  string

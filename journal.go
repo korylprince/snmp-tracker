@@ -7,6 +7,7 @@ import (
 	"github.com/korylprince/snmp-tracker/snmp"
 )
 
+// Upsert is a SQL upsert clause
 type Upsert struct {
 	Constraint    string   `json:"constraint"`
 	UpdateColumns []string `json:"update_columns"`
@@ -23,34 +24,41 @@ var ipAddressOnConflict = &Upsert{Constraint: "unique_ip_address", UpdateColumns
 var arpOnConflict = &Upsert{Constraint: "unique_arp", UpdateColumns: []string{"mac_address_id", "ip_address_id"}}
 var resolveOnConflict = &Upsert{Constraint: "unique_resolve", UpdateColumns: []string{"ip_address_id", "hostname_id"}}
 
+// Hostname is a device hostname
 type Hostname struct {
 	Hostname string `json:"hostname"`
 }
 
+// HostnamePointer is a pointer to a Hostname
 type HostnamePointer struct {
 	Data       *Hostname `json:"data"`
 	OnConflict *Upsert   `json:"on_conflict"`
 }
 
+// System is a device
 type System struct {
 	Name     string           `json:"name"`
 	Hostname *HostnamePointer `json:"hostname,omitempty"`
 }
 
+// SystemPointer is a pointer to a System
 type SystemPointer struct {
 	Data       *System `json:"data"`
 	OnConflict *Upsert `json:"on_conflict"`
 }
 
+// MacAddress is a MAC address
 type MacAddress struct {
 	MacAddress string `json:"mac_address"`
 }
 
+// MacAddressPointer is a pointer to a MacAddress
 type MacAddressPointer struct {
 	Data       *MacAddress `json:"data"`
 	OnConflict *Upsert     `json:"on_conflict"`
 }
 
+// Port is a switch port
 type Port struct {
 	System      *SystemPointer     `json:"system"`
 	MacAddress  *MacAddressPointer `json:"mac_address"`
@@ -58,11 +66,13 @@ type Port struct {
 	Description string             `json:"description"`
 }
 
+// PortPointer is a pointer to a port
 type PortPointer struct {
 	Data       *Port   `json:"data"`
 	OnConflict *Upsert `json:"on_conflict"`
 }
 
+// PortJournal is a journal of ports
 type PortJournal struct {
 	Port   *PortPointer `json:"port"`
 	Time   *time.Time   `json:"time"`
@@ -70,21 +80,25 @@ type PortJournal struct {
 	Speed  int          `json:"speed"`
 }
 
+// LLDP is an LLDP record
 type LLDP struct {
 	LocalPort  *PortPointer `json:"local_port"`
 	RemotePort *PortPointer `json:"remote_port"`
 }
 
+// LLDPPointer is a pointer to an LLDP
 type LLDPPointer struct {
 	Data       *LLDP   `json:"data"`
 	OnConflict *Upsert `json:"on_conflict"`
 }
 
+// LLDPJournal is a journal or LLDP records
 type LLDPJournal struct {
 	LLDP *LLDPPointer `json:"lldp"`
 	Time *time.Time   `json:"time"`
 }
 
+// MacAddressJournal is a journal of MAC addresses
 type MacAddressJournal struct {
 	MacAddress *MacAddressPointer `json:"mac_address"`
 	Port       *PortPointer       `json:"port"`
@@ -92,45 +106,54 @@ type MacAddressJournal struct {
 	Vlan       int                `json:"vlan"`
 }
 
+// IPAddress is an IP address
 type IPAddress struct {
 	IPAddress string `json:"ip_address"`
 }
 
+// IPAddressPointer is a pointer to an IPAddress
 type IPAddressPointer struct {
 	Data       *IPAddress `json:"data"`
 	OnConflict *Upsert    `json:"on_conflict"`
 }
 
+// Arp is an ARP record
 type Arp struct {
 	MacAddress *MacAddressPointer `json:"mac_address"`
 	IPAddress  *IPAddressPointer  `json:"ip_address"`
 }
 
+// ArpPointer is a pointer to an ARP
 type ArpPointer struct {
 	Data       *Arp    `json:"data"`
 	OnConflict *Upsert `json:"on_conflict"`
 }
 
+// ArpJournal is a journal of ARP records
 type ArpJournal struct {
 	Arp  *ArpPointer `json:"arp"`
 	Time *time.Time  `json:"time"`
 }
 
+// Resolve is a hostname resolution record
 type Resolve struct {
 	IPAddress *IPAddressPointer `json:"ip_address"`
 	Hostname  *HostnamePointer  `json:"hostname"`
 }
 
+// ResolvePointer is a pointer to a Resolve
 type ResolvePointer struct {
 	Data       *Resolve `json:"data"`
 	OnConflict *Upsert  `json:"on_conflict"`
 }
 
+// ResolveJournal is a journal of hostname resolution records
 type ResolveJournal struct {
 	Resolve *ResolvePointer `json:"resolve"`
 	Time    *time.Time      `json:"time"`
 }
 
+// Journal is a journal of records
 type Journal struct {
 	Ports        []*PortJournal
 	LLDPs        []*LLDPJournal
@@ -143,6 +166,7 @@ func portKey(p *snmp.Port) string {
 	return fmt.Sprintf("%s:%s", p.SystemName, p.Name)
 }
 
+// Translate translates SNMP info to a Journal
 func Translate(i *snmp.NetInfo) *Journal {
 	j := new(Journal)
 	t := time.Now().UTC()

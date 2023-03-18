@@ -17,6 +17,7 @@ const (
 	snmpLLDPSubTypeMacAddress = 3
 )
 
+// LLDP is an LLDP record
 type LLDP struct {
 	LocalPort  *Port
 	RemotePort *Port

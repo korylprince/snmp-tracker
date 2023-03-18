@@ -65,11 +65,13 @@ mutation insert_journals(
 }
 `
 
+// GraphQLConn is a GraphQL websocket connection
 type GraphQLConn struct {
 	conn *graphql.Conn
 	mu   *sync.Mutex
 }
 
+// NewGraphQLConn returns a new GraphQLConn
 func NewGraphQLConn(endpoint, adminSecret, apiSecret string) (*GraphQLConn, error) {
 	headers := make(http.Header)
 	if adminSecret != "" {
@@ -105,6 +107,7 @@ func NewGraphQLConn(endpoint, adminSecret, apiSecret string) (*GraphQLConn, erro
 	return gc, nil
 }
 
+// ReadSystems reads the Systems from the connection
 func (c *GraphQLConn) ReadSystems() ([]*snmp.System, error) {
 	type response struct {
 		System []*struct {
@@ -149,6 +152,7 @@ func (c *GraphQLConn) ReadSystems() ([]*snmp.System, error) {
 	return systems, nil
 }
 
+// InsertJournal submits the Journal
 func (c *GraphQLConn) InsertJournal(j *Journal) (int, error) {
 	type response struct {
 		InsertPortJournal struct {

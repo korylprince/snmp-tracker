@@ -6,6 +6,7 @@ import (
 	"github.com/gosnmp/gosnmp"
 )
 
+// ConnectionConfig is configuration for a connection
 type ConnectionConfig struct {
 	Transport      string                     `json:"transport"`
 	Community      string                     `json:"community"`
@@ -22,6 +23,7 @@ type ConnectionConfig struct {
 	PrivPassword   string                     `json:"priv_password"`
 }
 
+// New returns a new SNMP configuration
 func (c *ConnectionConfig) New(host string, port uint16) *gosnmp.GoSNMP {
 	return &gosnmp.GoSNMP{
 		Target:         host,

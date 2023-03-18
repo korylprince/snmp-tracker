@@ -2,6 +2,7 @@ package main
 
 import "time"
 
+// Config configures snmp-tracker
 type Config struct {
 	GraphQLEndpoint    string `required:"true"`
 	GraphQLAdminSecret string

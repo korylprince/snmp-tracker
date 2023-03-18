@@ -13,6 +13,7 @@ const (
 	snmpPhysicalAddressTypeIP = "1"
 )
 
+// Arp is an ARP record
 type Arp struct {
 	MacAddress string
 	IPAddress  string

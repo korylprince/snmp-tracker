@@ -15,6 +15,7 @@ const (
 	unknownMacAddress = "00:00:00:00:00:00"
 )
 
+// MacAddress is a MAC address
 type MacAddress struct {
 	MacAddress string
 	Port       *Port

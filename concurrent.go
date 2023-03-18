@@ -32,6 +32,7 @@ func conAgg(in <-chan *snmp.NetInfo, out chan<- *snmp.NetInfo) {
 	out <- info
 }
 
+// GetInfo retrieves SNMP information concurrently
 func GetInfo(resolver *resolve.Service, systems []*snmp.System, workers int) *snmp.NetInfo {
 	wg := new(sync.WaitGroup)
 	sysChan := make(chan *snmp.System)

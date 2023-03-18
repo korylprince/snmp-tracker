@@ -17,8 +17,10 @@ const (
 	snmpPortSpeedPrefix       = ".1.3.6.1.2.1.31.1.1.1.15"
 )
 
+// LinkStatusType is type of link statuses
 type LinkStatusType int
 
+// link statuses
 const (
 	LinkStatusUp             LinkStatusType = 1
 	LinkStatusDown           LinkStatusType = 2
@@ -29,6 +31,7 @@ const (
 	LinkStatusLowerLayerDown LinkStatusType = 7
 )
 
+// Port is a switch port
 type Port struct {
 	SystemName  string
 	MacAddress  string

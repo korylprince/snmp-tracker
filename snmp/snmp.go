@@ -43,6 +43,7 @@ func walkOIDs(snmp *gosnmp.GoSNMP, oids []string) (map[string][]gosnmp.SnmpPDU, 
 	return pdus, nil
 }
 
+// NetInfo is information from a device
 type NetInfo struct {
 	Ports        []*Port
 	LLDPs        []*LLDP
@@ -51,12 +52,14 @@ type NetInfo struct {
 	Resolves     []*Resolve
 }
 
+// System is a device
 type System struct {
 	Hostname          string `json:"hostname"`
 	Port              uint16 `json:"port"`
 	*ConnectionConfig `json:"connection"`
 }
 
+// Read retrieves information from network devices
 func (s *System) Read(resolver *resolve.Service) (*NetInfo, error) {
 	snmp := s.ConnectionConfig.New(s.Hostname, s.Port)
 

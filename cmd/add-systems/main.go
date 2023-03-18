@@ -36,6 +36,7 @@ func parseSystems(path string) ([]*system, error) {
 	return p.Systems, nil
 }
 
+// Upsert is a SQL upsert clause
 type Upsert struct {
 	Constraint    string   `json:"constraint"`
 	UpdateColumns []string `json:"update_columns"`
@@ -43,15 +44,18 @@ type Upsert struct {
 
 var hostnameOnConflict = &Upsert{Constraint: "unique_hostname", UpdateColumns: []string{"hostname"}}
 
+// Hostname is a device hostname
 type Hostname struct {
 	Hostname string `json:"hostname"`
 }
 
+// HostnamePointer is a pointer to a Hostname
 type HostnamePointer struct {
 	Data       *Hostname `json:"data"`
 	OnConflict *Upsert   `json:"on_conflict"`
 }
 
+// System is a device
 type System struct {
 	Name         string           `json:"name"`
 	Hostname     *HostnamePointer `json:"hostname"`
