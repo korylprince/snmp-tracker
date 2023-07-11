@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 
@@ -65,14 +66,23 @@ mutation insert_journals(
 }
 `
 
+type Option func(*GraphQLConn)
+
+func WithDebugFile(path string) Option {
+	return func(c *GraphQLConn) {
+		c.debugPath = path
+	}
+}
+
 // GraphQLConn is a GraphQL websocket connection
 type GraphQLConn struct {
-	conn *graphql.Conn
-	mu   *sync.Mutex
+	conn      *graphql.Conn
+	mu        *sync.Mutex
+	debugPath string
 }
 
 // NewGraphQLConn returns a new GraphQLConn
-func NewGraphQLConn(endpoint, adminSecret, apiSecret string) (*GraphQLConn, error) {
+func NewGraphQLConn(endpoint, adminSecret, apiSecret string, opts ...Option) (*GraphQLConn, error) {
 	headers := make(http.Header)
 	if adminSecret != "" {
 		headers.Add("X-Hasura-Admin-Secret", adminSecret)
@@ -87,6 +97,10 @@ func NewGraphQLConn(endpoint, adminSecret, apiSecret string) (*GraphQLConn, erro
 	}
 
 	gc := &GraphQLConn{conn: conn, mu: new(sync.Mutex)}
+
+	for _, opt := range opts {
+		opt(gc)
+	}
 
 	conn.SetCloseHandler(func(code int, text string) {
 		log.Printf("WARNING: Websocket closed unexpectedly: (%d) %s\n", code, text)
@@ -181,6 +195,18 @@ func (c *GraphQLConn) InsertJournal(j *Journal) (int, error) {
 			"arps":          j.Arps,
 			"resolves":      j.Resolves,
 		},
+	}
+
+	if c.debugPath != "" {
+		f, err := os.Create(c.debugPath)
+		if err != nil {
+			log.Println("WARNING: Unable to create debug file:", err)
+		} else {
+			defer f.Close()
+			if err = json.NewEncoder(f).Encode(q); err != nil {
+				log.Println("WARNING: Unable to write debug file:", err)
+			}
+		}
 	}
 
 	c.mu.Lock()

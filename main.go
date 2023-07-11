@@ -16,8 +16,14 @@ func main() {
 
 	resolver := resolve.NewService(config.Resolvers, config.ResolveBuffers)
 
+	var opts []Option
+
+	if config.DebugPath != "" {
+		opts = append(opts, WithDebugFile(config.DebugPath))
+	}
+
 	log.Println("Connecting to", config.GraphQLEndpoint)
-	conn, err := NewGraphQLConn(config.GraphQLEndpoint, config.GraphQLAdminSecret, config.GraphQLAPISecret)
+	conn, err := NewGraphQLConn(config.GraphQLEndpoint, config.GraphQLAdminSecret, config.GraphQLAPISecret, opts...)
 	if err != nil {
 		log.Fatalln("ERROR: Unable to connect to GraphQL endpoint:", err)
 	}

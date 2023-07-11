@@ -11,4 +11,5 @@ type Config struct {
 	Resolvers          int           `default:"16"`
 	ResolveBuffers     int           `default:"1024"`
 	PollInterval       time.Duration `default:"30m"`
+	DebugPath          string
 }
