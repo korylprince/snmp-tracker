@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -68,7 +68,8 @@ mutation insert_journals(
 
 type Option func(*GraphQLConn)
 
-func WithDebugFile(path string) Option {
+// WithDebugPath sets the folder to output debug information
+func WithDebugPath(path string) Option {
 	return func(c *GraphQLConn) {
 		c.debugPath = path
 	}
@@ -198,14 +199,8 @@ func (c *GraphQLConn) InsertJournal(j *Journal) (int, error) {
 	}
 
 	if c.debugPath != "" {
-		f, err := os.Create(c.debugPath)
-		if err != nil {
-			log.Println("WARNING: Unable to create debug file:", err)
-		} else {
-			defer f.Close()
-			if err = json.NewEncoder(f).Encode(q); err != nil {
-				log.Println("WARNING: Unable to write debug file:", err)
-			}
+		if err := writeDebug(filepath.Join(c.debugPath, "query.json"), q); err != nil {
+			log.Println("WARNING: could not write query:", err)
 		}
 	}
 

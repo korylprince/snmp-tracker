@@ -2,13 +2,14 @@ package main
 
 import (
 	"log"
+	"path/filepath"
 	"sync"
 
 	"github.com/korylprince/ipscan/resolve"
 	"github.com/korylprince/snmp-tracker/snmp"
 )
 
-func conWorker(wg *sync.WaitGroup, in <-chan *snmp.System, out chan<- *snmp.NetInfo, resolver *resolve.Service) {
+func conWorker(wg *sync.WaitGroup, in <-chan *snmp.System, out chan<- *snmp.NetInfo, resolver *resolve.Service, debugPath string) {
 	for sys := range in {
 		info, err := sys.Read(resolver)
 		if err != nil {
@@ -16,6 +17,11 @@ func conWorker(wg *sync.WaitGroup, in <-chan *snmp.System, out chan<- *snmp.NetI
 			continue
 		}
 		out <- info
+		if debugPath != "" {
+			if err := writeDebug(filepath.Join(debugPath, sys.Hostname+".json"), info); err != nil {
+				log.Printf("WARNING: could not write snmp info for %s: %v", sys.Hostname, err)
+			}
+		}
 	}
 	wg.Done()
 }
@@ -33,7 +39,7 @@ func conAgg(in <-chan *snmp.NetInfo, out chan<- *snmp.NetInfo) {
 }
 
 // GetInfo retrieves SNMP information concurrently
-func GetInfo(resolver *resolve.Service, systems []*snmp.System, workers int) *snmp.NetInfo {
+func GetInfo(resolver *resolve.Service, systems []*snmp.System, workers int, debugPath string) *snmp.NetInfo {
 	wg := new(sync.WaitGroup)
 	sysChan := make(chan *snmp.System)
 	aggChan := make(chan *snmp.NetInfo)
@@ -41,7 +47,7 @@ func GetInfo(resolver *resolve.Service, systems []*snmp.System, workers int) *sn
 
 	wg.Add(workers)
 	for i := 0; i < workers; i++ {
-		go conWorker(wg, sysChan, aggChan, resolver)
+		go conWorker(wg, sysChan, aggChan, resolver, debugPath)
 	}
 	go conAgg(aggChan, outChan)
 

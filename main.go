@@ -19,7 +19,7 @@ func main() {
 	var opts []Option
 
 	if config.DebugPath != "" {
-		opts = append(opts, WithDebugFile(config.DebugPath))
+		opts = append(opts, WithDebugPath(config.DebugPath))
 	}
 
 	log.Println("Connecting to", config.GraphQLEndpoint)
@@ -38,7 +38,7 @@ func main() {
 
 		log.Printf("INFO: Getting information from %d systems\n", len(systems))
 
-		info := GetInfo(resolver, systems, config.SNMPWorkers)
+		info := GetInfo(resolver, systems, config.SNMPWorkers, config.DebugPath)
 
 		j := Translate(info)
 
