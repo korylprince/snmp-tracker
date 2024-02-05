@@ -2,6 +2,7 @@ package snmp
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"strings"
 
@@ -21,6 +22,7 @@ const (
 type LLDP struct {
 	LocalPort  *Port
 	RemotePort *Port
+	id         string
 }
 
 func getLLDPs(snmp *gosnmp.GoSNMP, portTbl map[string]*Port) ([]*LLDP, error) {
@@ -47,7 +49,7 @@ func getLLDPs(snmp *gosnmp.GoSNMP, portTbl map[string]*Port) ([]*LLDP, error) {
 		//guard against empty duplicates
 		rSysName := string(pdu.Value.([]byte))
 		if rSysName != "" {
-			l := &LLDP{LocalPort: portTbl[id], RemotePort: &Port{SystemName: rSysName}}
+			l := &LLDP{LocalPort: portTbl[id], RemotePort: &Port{SystemName: rSysName}, id: id}
 			cache[oid] = l
 			lldps = append(lldps, l)
 		}
@@ -76,9 +78,15 @@ func getLLDPs(snmp *gosnmp.GoSNMP, portTbl map[string]*Port) ([]*LLDP, error) {
 
 	filtered := make([]*LLDP, 0, len(lldps))
 	for _, l := range lldps {
-		if l.RemotePort.Name != "" && l.RemotePort.MacAddress != "" && l.RemotePort.MacAddress != unknownMacAddress {
-			filtered = append(filtered, l)
+		if l.LocalPort == nil || l.LocalPort.Name == "" || l.LocalPort.MacAddress == "" || l.LocalPort.MacAddress == unknownMacAddress {
+			log.Printf("WARNING: %s lldp %s has unknown local port: %#v\n", snmp.Target, l.id, l.LocalPort)
+			continue
 		}
+		if l.RemotePort == nil || l.RemotePort.Name == "" || l.RemotePort.MacAddress == "" || l.RemotePort.MacAddress == unknownMacAddress {
+			log.Printf("WARNING: %s lldp %s has unknown remote port: %#v\n", snmp.Target, l.id, l.RemotePort)
+			continue
+		}
+		filtered = append(filtered, l)
 	}
 
 	return filtered, nil

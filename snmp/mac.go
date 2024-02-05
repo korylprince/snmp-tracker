@@ -2,6 +2,7 @@ package snmp
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"strconv"
 	"strings"
@@ -56,9 +57,15 @@ func getMacAddresses(snmp *gosnmp.GoSNMP, portTbl map[string]*Port) ([]*MacAddre
 			continue
 		}
 
+		port, ok := portTbl["."+strconv.Itoa(pdu.Value.(int))]
+		if !ok {
+			log.Printf("WARNING: %s mac address %s has unknown port: %d\n", snmp.Target, mac.String(), pdu.Value.(int))
+			continue
+		}
+
 		macs = append(macs, &MacAddress{
 			MacAddress: mac.String(),
-			Port:       portTbl["."+strconv.Itoa(pdu.Value.(int))],
+			Port:       port,
 			Vlan:       vlan,
 		})
 	}

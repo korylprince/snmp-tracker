@@ -163,9 +163,6 @@ type Journal struct {
 }
 
 func portKey(p *snmp.Port) string {
-	if p == nil {
-		return ""
-	}
 	return fmt.Sprintf("%s:%s", p.SystemName, p.Name)
 }
 
